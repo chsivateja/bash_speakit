@@ -16,8 +16,9 @@ EOF
 exit
 fi
 
-readarray SENTENCEARRAY < $1
-count=1
+#readarray SENTENCEARRAY < $1
+LINE=$(cat $1 | tr '\n' ' ')
+count=0
 TMPARRAY=()
 word=
 
@@ -25,8 +26,8 @@ speakit () {
     if $1; then
         :
     else
-        word=${TMPARRAY[${#TMPARRAY[@]}-1]}
-        unset TMPARRAY[${#TMPARRAY[@]}-1]
+        prevword=${TMPARRAY[${#TMPARRAY[@]}-1]} # store previous word
+        unset TMPARRAY[${#TMPARRAY[@]}-1] # remove last
     fi
     results=$(join + "${TMPARRAY[@]}")
     # remove url unsafe characters
@@ -56,9 +57,9 @@ speakit () {
 -e 's:\*::g' <<< $results)
     echo ${#results}
     # language can be set by replace 'tl=en' with 'tl=LANGUAGE'
-    wget -q -U Mozilla -O output.mp3 "http://translate.google.com/translate_tts?ie=UTF-8&tl=en&q=$results" && mpg123 output.mp3
-    TMPARRAY=("$word")
-    count=$((${#word} + 1))
+#    wget -q -U Mozilla -O output.mp3 "http://translate.google.com/translate_tts?ie=UTF-8&tl=en&q=$results" && mpg123 output.mp3
+    TMPARRAY=("$prevword")
+    count=$((${#prevword} + 1))
 }
 
 join () { 
@@ -66,24 +67,24 @@ join () {
 }
 
 
-pos=$(( ${#SENTENCEARRAY[*]} - 1 ))
-#last=${SENTENCEARRAY[$pos]}
-last=-1
-for sentence in "${SENTENCEARRAY[@]}"; do
-    for word in $sentence; do
-        echo $count
-        if (( $(( $count + ${#word} )) > 100 )); then
-            speakit
-            break
+
+
+lastcount=0
+words=0
+for word in $LINE; do
+    words=$(( $words + 1))
+done
+for word in $LINE; do
+    lastcount=$(( $lastcount + 1 ))
+    if (( $(( $count + ${#word} )) < 100 )); then
+        TMPARRAY+=("$word")
+        LASTARRAY=$TMPARRAY
+        count=$(( $count + ${#word} + 1))
+        if (( $lastcount == $words )); then
+            speakit true
         fi
-        TMPARRAY+=($word)
-        count=$(( $count + ${#word} + 1 ))
-    done
-    last=$(( $last + 1 ))
-    if (( "$last" == "$pos" )); then
-        echo "$last"
-        echo "$sentence"
-        speakit true
-        exit
+    else
+        speakit
     fi
 done
+
