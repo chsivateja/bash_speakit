@@ -5,18 +5,19 @@
 # usage: speakit filename
 
 INSTALLED=$(dpkg-query -l "mpg123")
+
 if [[ $? == 1 ]]; then
     exit
 fi
+
 if [[ ! $1 ]]; then
     cat - <<EOF
 usage: 
     bash_speakit /path/to/file.txt
 EOF
-exit
+    exit
 fi
 
-#readarray SENTENCEARRAY < $1
 LINE=$(cat $1 | tr '\n' ' ')
 count=0
 TMPARRAY=()
@@ -57,7 +58,7 @@ speakit () {
 -e 's:\*::g' <<< $results)
     echo ${#results}
     # language can be set by replace 'tl=en' with 'tl=LANGUAGE'
-#    wget -q -U Mozilla -O output.mp3 "http://translate.google.com/translate_tts?ie=UTF-8&tl=en&q=$results" && mpg123 output.mp3
+    wget -q -U Mozilla -O output.mp3 "http://translate.google.com/translate_tts?ie=UTF-8&tl=en&q=$results" && mpg123 output.mp3
     TMPARRAY=("$prevword")
     count=$((${#prevword} + 1))
 }
@@ -65,9 +66,6 @@ speakit () {
 join () { 
     local IFS="$1";shift; echo "$*";
 }
-
-
-
 
 lastcount=0
 words=0
@@ -87,4 +85,3 @@ for word in $LINE; do
         speakit
     fi
 done
-
