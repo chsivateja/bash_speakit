@@ -1,0 +1,71 @@
+#!/bin/bash
+# james.a.munsch@gmail.com 2014
+# A simple speech to text for googles tts
+# using bash
+# usage: speakit filename
+
+if [[ ! $1 ]]; then
+    cat - <<EOF
+usage: 
+    bash_speakit /path/to/file.txt
+EOF
+exit
+fi
+
+readarray SENTENCEARRAY < $1
+count=1
+TMPARRAY=()
+word=
+speakit () {
+    word=${TMPARRAY[${#TMPARRAY[@]}-1]}
+    unset TMPARRAY[${#TMPARRAY[@]}-1]
+    results=$(join + "${TMPARRAY[@]}")
+    # remove url unsafe characters
+    results=$(sed -e 's:%::g' \
+-e 's: ::g' \
+-e 's:<::g' \
+-e 's:>::g' \
+-e 's:#::g' \
+-e 's:{::g' \
+-e 's:}::g' \
+-e 's:|::g' \
+-e 's:\\::g' \
+-e 's:\^::g' \
+-e 's:~::g' \
+-e 's:\[::g' \
+-e 's:\]::g' \
+-e 's:`::g' \
+-e 's:;::g' \
+-e 's:/::g' \
+-e 's:?::g' \
+-e 's^:^^g' \
+-e 's:@::g' \
+-e 's:=::g' \
+-e 's:&::g' \
+-e 's:\$::g' \
+-e 's:\!::g' \
+-e 's:\*::g' <<< $results)
+    echo ${#results}
+    # language can be set by replace 'tl=en' with 'tl=LANGUAGE'
+    wget -q -U Mozilla -O output.mp3 "http://translate.google.com/translate_tts?ie=UTF-8&tl=en&q=$results" && mpg123 output.mp3
+    TMPARRAY=("$word")
+    count=$((${#word} + 1))
+}
+
+join () { 
+    local IFS="$1";shift; echo "$*";
+}
+
+
+
+for sentence in "${SENTENCEARRAY[@]}"; do
+    for word in $sentence; do
+        echo $count
+        if (( $(( $count + ${#word} )) > 100 )); then
+            speakit
+            break
+        fi
+        TMPARRAY+=($word)
+        count=$(( $count + ${#word} + 1 ))
+    done
+done
