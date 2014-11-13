@@ -4,8 +4,10 @@
 # using bash
 # usage: speakit filename
 
-INSTALLED=$(dpkg -l \grep "mpg123")
-
+INSTALLED=$(dpkg-query -l "mpg123")
+if [[ $? == 1 ]]; then
+    exit
+fi
 if [[ ! $1 ]]; then
     cat - <<EOF
 usage: 
@@ -18,9 +20,14 @@ readarray SENTENCEARRAY < $1
 count=1
 TMPARRAY=()
 word=
+
 speakit () {
-    word=${TMPARRAY[${#TMPARRAY[@]}-1]}
-    unset TMPARRAY[${#TMPARRAY[@]}-1]
+    if $1; then
+        :
+    else
+        word=${TMPARRAY[${#TMPARRAY[@]}-1]}
+        unset TMPARRAY[${#TMPARRAY[@]}-1]
+    fi
     results=$(join + "${TMPARRAY[@]}")
     # remove url unsafe characters
     results=$(sed -e 's:%::g' \
@@ -59,7 +66,9 @@ join () {
 }
 
 
-
+pos=$(( ${#SENTENCEARRAY[*]} - 1 ))
+#last=${SENTENCEARRAY[$pos]}
+last=-1
 for sentence in "${SENTENCEARRAY[@]}"; do
     for word in $sentence; do
         echo $count
@@ -70,4 +79,11 @@ for sentence in "${SENTENCEARRAY[@]}"; do
         TMPARRAY+=($word)
         count=$(( $count + ${#word} + 1 ))
     done
+    last=$(( $last + 1 ))
+    if (( "$last" == "$pos" )); then
+        echo "$last"
+        echo "$sentence"
+        speakit true
+        exit
+    fi
 done
