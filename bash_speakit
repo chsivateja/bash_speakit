@@ -1,5 +1,6 @@
 #!/bin/bash
-# james.a.munsch@gmail.com 2014
+# james.a.munsch@gmail.com 2014 Copyleft
+# use it how you want
 # A simple speech to text for googles tts
 # using bash
 # usage: speakit filename
