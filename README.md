@@ -8,5 +8,5 @@ Requirements:
 - `dpkg-query`
 
 usage: 
-    `bash_speakit /path/to/file.txt`
+    `./bash_speakit /path/to/file.txt`
 
