@@ -4,6 +4,8 @@
 # using bash
 # usage: speakit filename
 
+INSTALLED=$(dpkg -l \grep "mpg123")
+
 if [[ ! $1 ]]; then
     cat - <<EOF
 usage: 
