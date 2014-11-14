@@ -25,11 +25,16 @@ TMPARRAY=()
 word=
 
 speakit () {
+    echo "${TMPARRAY[@]}"
+    echo $1
     if $1; then
+
         :
     else
-        prevword=${TMPARRAY[${#TMPARRAY[@]}-1]} # store previous word
-        unset TMPARRAY[${#TMPARRAY[@]}-1] # remove last
+        prevword=${TMPARRAY[${#TMPARRAY[@]}-1])} # store previous word
+        echo PREVIOUSWORD
+        echo $prevword
+        unset TMPARRAY[$((${#TMPARRAY[@]} - 1 ))]
     fi
     results=$(join + "${TMPARRAY[@]}")
     # remove url unsafe characters
@@ -61,6 +66,7 @@ speakit () {
     # language can be set by replace 'tl=en' with 'tl=LANGUAGE'
     wget -q -U Mozilla -O output.mp3 "http://translate.google.com/translate_tts?ie=UTF-8&tl=en&q=$results" && mpg123 output.mp3
     TMPARRAY=("$prevword")
+    echo "${TMPARRAY[@]}"
     count=$((${#prevword} + 1))
 }
 
@@ -77,12 +83,12 @@ for word in $LINE; do
     lastcount=$(( $lastcount + 1 ))
     if (( $(( $count + ${#word} )) < 100 )); then
         TMPARRAY+=("$word")
-        LASTARRAY=$TMPARRAY
         count=$(( $count + ${#word} + 1))
         if (( $lastcount == $words )); then
             speakit true
         fi
     else
-        speakit
+        TMPARRAY+=("$word")
+        speakit false
     fi
 done
